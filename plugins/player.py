@@ -58,6 +58,22 @@ admin_filter=filters.create(is_admin)
 async def add_to_playlist(client, message):
     print(f"Command received from {message.from_user.id} in chat type: {message.chat.type}")
     with suppress(MessageIdInvalid, MessageNotModified):
+        # Check if the command is used in the authorized chat
+        if message.chat.id != Config.CHAT and message.chat.type != enums.ChatType.PRIVATE:
+            buttons = [
+                [
+                    InlineKeyboardButton('🤖 Make Own Bot', url='https://github.com/bisnuray/SmartVCPlayer'),
+                    InlineKeyboardButton('✅ Join Here', url='https://t.me/itsSmartDev'),
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(buttons)
+            await message.reply(
+                "This is not the group which I have been configured to play in. Do you want to set this group as default CHAT?",
+                quote=False,
+                reply_markup=reply_markup
+            )
+            return
+        
         # Fetch the list of admins for the chat
         admins = await get_admins(Config.CHAT)
 
@@ -502,9 +518,9 @@ async def not_chat(_, m: Message):
     else:
         buttons = [
             [
-                InlineKeyboardButton('⚡️Make Own Bot', url='https://github.com/subinps/VCPlayerBot'),
+                InlineKeyboardButton('⚡️Make Own Bot', url='https://github.com/bisnuray/SmartVCPlayer'),
                 InlineKeyboardButton('✅ Join Here', url='https://t.me/itsSmartDev'),
             ]
             ]
-        await m.reply("<b>You can't use this bot in this group, for that you have to make your own bot from the [SOURCE CODE](https://github.com/subinps/VCPlayerBot) below.</b>", quote=False, disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(buttons))
+        await m.reply("<b>You can't use this bot in this group, for that you have to make your own bot from the [SOURCE CODE](https://github.com/bisnuray/SmartVCPlayer) below.</b>", quote=False, disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(buttons))
 

